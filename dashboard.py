@@ -198,7 +198,7 @@ if menu == "Overview":
         })
         st.dataframe(
             inventory_alerts.style.apply(
-                lambda x: ['background-color: #ffebee' if x.Stock < x.Threshold else '' for _ in x],
+                lambda x: ['background-color: #10456D' if x.Stock < x.Threshold else '' for _ in x],
                 axis=1
             ),
             use_container_width=True
