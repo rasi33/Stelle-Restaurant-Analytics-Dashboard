@@ -5,19 +5,22 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import plotly.express as px
 
-# Title and Overview
-st.image("./FB_IMG_1737140832991.jpg",width=450
- )  # Replace with your logo path
+st.set_page_config(layout="wide")
+# Create three columns with the middle one containing the content
+left_col, middle_col, right_col = st.columns([1,2,1])
 st.title("Stelle Restaurant Analytics Dashboard")
 st.markdown("### A data-driven approach to optimize operations and enhance customer experience")
+
 user_profile = {
     "name": "Erica",
     "role": "Manager",
     "profile_picture": "./images.png"  # Replace with actual image path
 }
+
 # Sidebar Layout
+st.sidebar.image("./FB_IMG_1737140832991.jpg", width=300)
 st.sidebar.header("User  Profile")
-st.sidebar.image(user_profile["profile_picture"], width=80)  # Profile Picture
+st.sidebar.image(user_profile["profile_picture"], width=90)  # Profile Picture
 st.sidebar.markdown(f"**{user_profile['name']}**")  # User Name
 st.sidebar.markdown(f"*{user_profile['role']}*")  # User Role
 menu = st.sidebar.selectbox("Select a Dashboard Section", [
@@ -68,117 +71,150 @@ if theme_option == "Dark Mode":
         </style>
     """, unsafe_allow_html=True)
 
-# Sections
 if menu == "Overview":
     st.header("Overview Dashboard")
+    
+    # Custom CSS for better card styling
+    st.markdown("""
+        <style>
+        div[data-testid="stMetricValue"] {
+            font-size: 24px;
+            color: #0066cc;
+        }
+        div.stMetricLabel {
+            font-size: 16px;
+            color: #666666;
+        }
+        div[data-testid="metric-container"] {
+            background-color: #ffffff;
+            border: 1px solid #e6e6e6;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
-    # Create a grid layout for key metrics using cards
-    st.markdown("<style> .card { background-color: #f0f2f5; border-radius: 10px; padding: 20px; margin: 10px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); } </style>", unsafe_allow_html=True)
-
-    # Today's Revenue
+    # Top metrics section - 3 columns
     col1, col2, col3 = st.columns(3)
+    
     with col1:
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
-        st.markdown("### Today's Revenue")
         today_revenue = data['Sales'].iloc[-1]
-        revenue_data = pd.DataFrame({
-            "Metric": ["Today's Revenue", "Remaining"],
-            "Value": [today_revenue, 10000 - today_revenue]  # Assuming a target revenue of 10,000
-        })
-        fig_revenue_donut = px.pie(revenue_data, names='Metric', values='Value', hole=0.4)
-        st.plotly_chart(fig_revenue_donut, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.metric(
+            label="Today's Revenue",
+            value=f"${today_revenue:,.2f}",
+            delta=f"{((today_revenue/10000)*100):.1f}% of target"
+        )
 
-    # Today's Orders
     with col2:
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
-        st.markdown("### Today's Orders")
         today_orders = data['Customers'].iloc[-1]
-        orders_data = pd.DataFrame({
-            "Metric": ["Today's Orders", "Remaining"],
-            "Value": [today_orders, 300 - today_orders]  # Assuming a target of 300 orders
-        })
-        fig_orders_donut = px.pie(orders_data, names='Metric', values='Value', hole=0.4)
-        st.plotly_chart(fig_orders_donut, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.metric(
+            label="Today's Orders",
+            value=f"{today_orders:,}",
+            delta=f"{((today_orders/300)*100):.1f}% of target"
+        )
 
-    # Average Service Time
     with col3:
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
-        st.markdown("### Average Service Time")
         avg_service_time = data['Service Time'].mean()
-        service_time_data = pd.DataFrame({
-            "Metric": ["Average Service Time", "Target Time"],
-            "Value": [avg_service_time, 10]  # Assuming a target average service time of 10 minutes
-        })
-        fig_service_time_donut = px.pie(service_time_data, names='Metric', values='Value', hole=0.4)
-        st.plotly_chart(fig_service_time_donut, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.metric(
+            label="Avg Service Time",
+            value=f"{avg_service_time:.1f} min",
+            delta=f"{(10-avg_service_time):.1f} min to target"
+        )
 
-    # Create a grid layout for charts
-    st.markdown("### Performance Charts")
-    col4, col5 = st.columns(2)
+    # Performance charts section - 2 columns
+    st.subheader("Performance Analytics")
+    chart_col1, chart_col2 = st.columns(2)
 
-    with col4:
-        st.markdown("#### Revenue Trend Line Chart")
-        fig_revenue = px.line(data, x="Date", y="Sales", title="Daily Revenue Trend", labels={"Sales": "Revenue ($)", "Date": "Date"})
+    with chart_col1:
+        # Revenue trend
+        fig_revenue = px.line(
+            data,
+            x="Date",
+            y="Sales",
+            title="Daily Revenue Trend",
+            labels={"Sales": "Revenue ($)", "Date": "Date"}
+        )
+        fig_revenue.update_layout(margin=dict(t=30))
         st.plotly_chart(fig_revenue, use_container_width=True)
 
-    with col5:
-        st.markdown("#### Customer Traffic by Peak Hours")
-        hourly_traffic = pd.DataFrame({"Hour": list(range(6, 23)), "Customers": np.random.randint(10, 50, 17)})
-        fig_traffic = px.bar(hourly_traffic, x="Hour", y="Customers", title="Customer Traffic by Hour", labels={"Customers": "Customer Count", "Hour": "Hour of Day"})
+    with chart_col2:
+        # Customer traffic
+        hourly_traffic = pd.DataFrame({
+            "Hour": list(range(6, 23)),
+            "Customers": np.random.randint(10, 50, 17)
+        })
+        fig_traffic = px.bar(
+            hourly_traffic,
+            x="Hour",
+            y="Customers",
+            title="Customer Traffic by Hour",
+            labels={"Customers": "Customer Count", "Hour": "Hour of Day"}
+        )
+        fig_traffic.update_layout(margin=dict(t=30))
         st.plotly_chart(fig_traffic, use_container_width=True)
 
-    # Revenue Breakdown by Service Type
-    st.markdown("### Revenue Breakdown by Service Type")
-    service_revenue = data.groupby("Service Type")["Sales"].sum().reset_index()
-    fig_service = px.pie(service_revenue, names="Service Type", values="Sales", title="Revenue by Service Type")
-    st.plotly_chart(fig_service, use_container_width=True)
+    # Revenue breakdown and performance indicators - 2 columns
+    st.subheader("Business Insights")
+    insight_col1, insight_col2 = st.columns(2)
 
-    # Performance Indicators
-    st.markdown("### Performance Indicators")
-    col6, col7 = st.columns(2)
+    with insight_col1:
+        service_revenue = data.groupby("Service Type")["Sales"].sum().reset_index()
+        fig_service = px.pie(
+            service_revenue,
+            names="Service Type",
+            values="Sales",
+            title="Revenue by Service Type"
+        )
+        fig_service.update_layout(margin=dict(t=30))
+        st.plotly_chart(fig_service, use_container_width=True)
 
-    with col6:
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
-        st.metric(label="Revenue Change", value="+5%", delta="5%", delta_color="normal")
-        st.markdown("</div>", unsafe_allow_html=True)
+    with insight_col2:
+        # Performance table
+        st.markdown("#### Sales Performance")
+        performance_data = pd.DataFrame({
+            "Item": ["Burger", "Pizza", "Pasta", "Salad"],
+            "Sales": [300, 250, 200, 100],
+            "Profit": [1200, 1500, 800, 600]
+        })
+        st.dataframe(
+            performance_data.style.background_gradient(
+                subset=['Sales', 'Profit'],
+                cmap='Blues'
+            ),
+            use_container_width=True
+        )
 
-    with col7:
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
-        st.metric(label="Customer Change", value="-2%", delta="-2%", delta_color="inverse")
-        st.markdown("</div>", unsafe_allow_html=True)
+    # Alerts and inventory section
+    st.subheader("Alerts & Inventory")
+    alert_col1, alert_col2 = st.columns(2)
 
-    # Alerts Section
-    st.markdown("### Alerts")
-    inventory_alerts = pd.DataFrame({
-        "Item": ["Tomatoes", "Cheese", "Lettuce"],
-        "Stock Level": [10, 5, 2],
-        "Threshold": [20, 15, 10]
-    })
-    st.warning("Low inventory detected for some items.")
-    st.table(inventory_alerts)
+    with alert_col1:
+        st.warning("⚠️ Low Inventory Items")
+        inventory_alerts = pd.DataFrame({
+            "Item": ["Tomatoes", "Cheese", "Lettuce"],
+            "Stock": [10, 5, 2],
+            "Threshold": [20, 15, 10]
+        })
+        st.dataframe(
+            inventory_alerts.style.apply(
+                lambda x: ['background-color: #ffebee' if x.Stock < x.Threshold else '' for _ in x],
+                axis=1
+            ),
+            use_container_width=True
+        )
 
-    # Performance Analysis
-    st.markdown("### Performance Analysis")
-    performance_data = pd.DataFrame({
-        "Item": ["Burger", "Pizza", "Pasta", "Salad"],
-        "Sales": [300, 250, 200, 100],
-        "Profit": [1200, 1500, 800, 600]
-    })
-    
-    # Modern table design
-    st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.markdown("#### Sales Performance Table")
-    st.dataframe(performance_data.style.applymap(lambda x: "color: green" if isinstance(x, (int, float)) and x > 100 else "color: red"))
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    # Additional Chart: Sales vs. Profit
-    st.markdown("### Sales vs. Profit")
-    fig_sales_profit = px.bar(performance_data, x='Item', y=['Sales', 'Profit'], title="Sales vs. Profit", barmode='group')
-    st.plotly_chart(fig_sales_profit, use_container_width=True)
-
+    with alert_col2:
+        # Sales vs Profit comparison
+        fig_sales_profit = px.bar(
+            performance_data,
+            x='Item',
+            y=['Sales', 'Profit'],
+            title="Sales vs. Profit Comparison",
+            barmode='group'
+        )
+        fig_sales_profit.update_layout(margin=dict(t=30))
+        st.plotly_chart(fig_sales_profit, use_container_width=True)
    
 
 elif menu == "Demand Prediction":
@@ -649,8 +685,8 @@ elif menu == "Customer Feedback":
     st.text("- The most common positive feedback is about the pizza, indicating it is a popular item.")
     st.text("- Consider addressing the wait time issue to improve overall customer satisfaction.")
     st.text("- Regularly monitor feedback trends to identify any emerging issues.")
-    
     st.markdown("</div>", unsafe_allow_html=True)
+
 # Footer
 st.markdown("---")
 st.caption("Analytics Dashboard powered by Stelle Restaurant's data insights.")
