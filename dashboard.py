@@ -79,7 +79,7 @@ if menu == "Overview":
         <style>
         div[data-testid="stMetricValue"] {
             font-size: 24px;
-            color: #0066cc;
+            color: #e153b5;
         }
         div.stMetricLabel {
             font-size: 16px;
